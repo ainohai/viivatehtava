@@ -124,6 +124,6 @@
 		margin: 24px 12px;
 	}
 	.sketchWrap {
-		height: 250px;
+		min-height: 250px;
 	}
 </style>
