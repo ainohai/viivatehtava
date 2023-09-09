@@ -5,24 +5,33 @@
 	import type { Line } from './types';
 	import { createSketch } from './sketch';
 	import 'milligram/dist/milligram.min.css';
+	import ColorSelection from './ColorSelection.svelte';
 
-	export const ssr = false;
-	
 	const CANVAS_WIDTH = 350;
 	const CANVAS_HEIGHT = 200;
 
 	const NUM_OF_DRAWINGS = 3;
 
+	let backgroundColors = ['#f3f4f7', '#e0dbd1', '#ccd9cb', '#b0c4de', '#f2e6c8'];
+	let selectedBackgroundColors = [backgroundColors[0]];
+
 	let vertical: Line = {
 		minWidth: 0,
 		maxWidth: 12,
-		minHeight: CANVAS_HEIGHT - 5,
+		minHeight: CANVAS_HEIGHT - 2,
 		maxHeight: CANVAS_HEIGHT,
 		wantedLines: 3,
-		minDistance: 0,
-		maxDistance: CANVAS_WIDTH,
-		angles: [0],
 		id: 'vertical',
+		colors: ['#17202a']
+	};
+
+	let horizontal: Line = {
+		minWidth: 0,
+		maxWidth: 12,
+		minHeight: CANVAS_WIDTH - 2,
+		maxHeight: CANVAS_WIDTH,
+		wantedLines: 0,
+		id: 'horizontal',
 		colors: ['#17202a']
 	};
 
@@ -31,19 +40,23 @@
 		sketch: (p5: any) => void;
 	};
 
-	let lines: Line[] = [];
+	let lines: Line[] = [vertical, horizontal];
 	let sketches: Sketchy[] = [];
 
+	//TODO: Separate change method and drawing, and use it correctly.
 	function settingsChange(line: Line) {
-		console.log('vertical settingsChange');
-		line = { ...line };
-		lines = [line];
+		lines.forEach((obj) => {
+			if (obj.id === line.id) {
+				obj = { ...line };
+			}
+		});
+		lines = lines;
 		let newSketches = [];
 
 		for (let i = 0; i < NUM_OF_DRAWINGS; i++) {
 			newSketches.push({
 				id: Date.now() + Math.random(),
-				sketch: createSketch([line], CANVAS_WIDTH, CANVAS_HEIGHT)
+				sketch: createSketch([...lines], CANVAS_WIDTH, CANVAS_HEIGHT, selectedBackgroundColors)
 			});
 		}
 		sketches = newSketches;
@@ -55,23 +68,50 @@
 
 <div class="sketchWrap">
 	{#each sketches as sketch (sketch.id)}
-	    <div class="sketch">
-		    <P5 sketch={sketch.sketch} />
-	    </div>
+		<div class="sketch">
+			<P5 sketch={sketch.sketch} />
+		</div>
 	{/each}
 </div>
 
-<button on:click={(e) => settingsChange(vertical)}>Piirrä</button>
-<LineControllers
-	line={vertical}
-	maxLineDistance={CANVAS_WIDTH}
-	maxLineHeight={CANVAS_HEIGHT}
-	on:lineChanged={(e) => settingsChange(e.detail.line)}
-/>
+<div>
+	<button on:click={(e) => settingsChange(lines[0])}>Piirrä</button>
+
+	<LineControllers
+		line={lines[0]}
+		maxLineHeight={CANVAS_HEIGHT}
+		on:lineChanged={(e) => settingsChange(e.detail.line)}
+	/>
+
+	<h2>Vaakaviivat</h2>
+	<LineControllers
+		line={lines[1]}
+		maxLineHeight={CANVAS_HEIGHT}
+		on:lineChanged={(e) => settingsChange(e.detail.line)}
+	/>
+
+	<div style="width:50%; display:inline-block; margin-left:12px;">
+		<ColorSelection
+			title={'Taustaväri'}
+			colorAlternatives={backgroundColors}
+			colors={selectedBackgroundColors}
+			on:colorSelection={(e) => {
+				selectedBackgroundColors = e.detail.selected;
+				settingsChange(lines[0]);
+			}}
+		/>
+	</div>
+</div>
 
 <style>
+	:global(body){
+		background-color: #f3f4f7;
+	}
 	h1 {
 		font-size: 2.6rem;
+	}
+	:global(h2) {
+		font-size: 1.8em;
 	}
 	:global(h3) {
 		font-size: 1.5rem;

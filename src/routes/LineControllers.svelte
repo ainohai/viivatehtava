@@ -1,4 +1,6 @@
 <script lang="ts">
+  import ColorSelection from './ColorSelection.svelte';
+
 	import Slider from './Slider.svelte';
 	import type { Line } from './types';
 	import { createEventDispatcher } from 'svelte';
@@ -7,11 +9,10 @@
 
 	export let line: Line;
 	export let maxLineHeight: number;
-    export let maxLineDistance: number; 
 
-	let { minWidth, maxWidth, maxDistance, minDistance, wantedLines, minHeight, maxHeight, colors } = line;
+	let { minWidth, maxWidth, wantedLines, minHeight, maxHeight, colors } = line;
 
-    const colorAlternatives = ["#999999", "#454545",  "#17202a"];
+    const colorAlternatives = ["#DCDCDC", "#999999", "#454545",  "#17202a"];
 	let selected: string[] = [...colors];
 
     const toggleColor = (color: string) => {
@@ -27,15 +28,12 @@
         }
         selected=selected;
 
-        console.log(selected)
 
     }
 
 	function settingsChange(
 		minWidth: number,
 		maxWidth: number,
-		minDistance: number,
-		maxDistance: number,
         wantedLines: number,
         minHeight: number,
         maxHeight: number,
@@ -43,8 +41,6 @@
 	) {
 		line.minWidth = minWidth;
 		line.maxWidth = maxWidth;
-		line.minDistance = minDistance;
-		line.maxDistance = maxDistance;
         line.wantedLines = wantedLines;
         line.minHeight = minHeight;
         line.maxHeight = maxHeight;
@@ -57,22 +53,20 @@
 	}
 
     //can I use just an object here?
-	$: clear = settingsChange(minWidth, maxWidth, minDistance, maxDistance, wantedLines, minHeight, maxHeight, selected);
+	$: clear = settingsChange(minWidth, maxWidth, wantedLines, minHeight, maxHeight, selected);
 </script>
 
 
 <div class="slider">
 <h3>Viivan leveys:</h3>
-<Slider bind:min={minWidth} bind:max={maxWidth} scaleBottom={1} scaleTop={100} />
+<Slider bind:min={minWidth} bind:max={maxWidth} scaleBottom={0.1} scaleTop={100} />
 </div>
 
 <div class="slider">
-<h3>Viivan korkeus:</h3>
+<h3>Viivan pituus:</h3>
 <Slider bind:min={minHeight} bind:max={maxHeight} scaleBottom={0} scaleTop={maxLineHeight} />
 </div>
 
-<!--><h3>Viivojen etäisyys toisistaan</h3>
-<Slider bind:min={minDistance} bind:max={maxDistance} scaleBottom={2} scaleTop={maxLineDistance} />-->
 
 <div class="small">
     <h3> Viivojen määrä</h3>
@@ -80,15 +74,7 @@
 </div>
 
 <div class="small">
-    <h3> Viivojen väri</h3>
-	{#each colorAlternatives as color, i}
-		<button
-			aria-current={selected.includes(color)}
-			aria-label={color}
-			style="background: {color}"
-			on:click={(e) => toggleColor(color)}
-		>{selected.indexOf(color) === -1 ? "X" : ""}</button>
-	{/each}
+<ColorSelection {colorAlternatives} colors={line.colors} on:colorSelection={(e) => selected = e.detail.selected}/>
 </div>
 
 <style>
@@ -100,19 +86,4 @@
         display: inline-block;
     }
 
-	button {
-		aspect-ratio: 1;
-		border-radius: 50%;
-		background: var(--color, #fff);
-		transform: translate(-2px,-2px);
-		filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.2));
-		transition: all 0.1s;
-        height: auto;
-	}
-
-	button[aria-current="true"] {
-		transform: none;
-		filter: none;
-		box-shadow: inset 3px 3px 4px rgba(0,0,0,0.2);
-	}
 </style>
