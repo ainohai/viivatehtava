@@ -80,6 +80,7 @@
 <style>
     .slider {
         width: 100%;
+        margin-bottom: 12px;
     }
     .small {
         width:40%;
