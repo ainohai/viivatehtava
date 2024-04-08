@@ -1,5 +1,6 @@
 # Description
 Quick intro into Svelte and a digital version of an art lesson task. 
+Live version can be found here: https://ainohai.github.io/viivatehtava/ .
 
 ## Developing
 
